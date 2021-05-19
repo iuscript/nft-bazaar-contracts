@@ -13,8 +13,8 @@ interface ERC721Like {
         returns (uint256);
 }
 
-interface ERC20Like {
-    function transfer(address, uint256) external returns (bool);
+interface USDTLike {
+    function transfer(address, uint256) external;
 
     function transferFrom(
         address _from,
@@ -146,12 +146,12 @@ contract NftMarket is Owned {
         uint256 share1 = (offer.price * transferFee) / 100; // 平台分润
 
         if (offer.paymentToken != address(0)) {
-            ERC20Like(offer.paymentToken).transferFrom(
+            USDTLike(offer.paymentToken).transferFrom(
                 msg.sender,
                 address(this),
                 offer.price
             );
-            ERC20Like(offer.paymentToken).transfer(
+            USDTLike(offer.paymentToken).transfer(
                 offer.seller,
                 offer.price - share1
             );
