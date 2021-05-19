@@ -51,10 +51,9 @@ contract Owned {
 }
 
 contract NftMarket is Owned {
-    address public constant usdToken =
-        0xdAC17F958D2ee523a2206206994597C13D831ec7;
     address public nftAsset; // kovan 0x0663b99715199d78850836Ba93dd479955E5105D
-    uint256 transferFee = 5; // default 5%
+    address public usdToken; // kovan 0xB00Db1372E3B459697514213721118Faf75e3B6e main 0xdAC17F958D2ee523a2206206994597C13D831ec7 
+    uint256 public constant transferFee = 5; // default 5%
 
     struct Offer {
         bool isForSale;
@@ -78,8 +77,9 @@ contract NftMarket is Owned {
     event NoLongerForSale(uint256 indexed tokenID);
     event Withdraw(address indexed who, uint256 value);
 
-    constructor(address _nftAsset) {
+    constructor(address _nftAsset, address _usdToken) {
         nftAsset = _nftAsset;
+        usdToken = _usdToken;
     }
 
     function createAndSell(
