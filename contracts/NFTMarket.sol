@@ -185,5 +185,9 @@ contract NftMarket is Owned {
         payable(owner).transfer(amount);
     }
 
+    function recoveryUsdt(uint256 amount) external onlyOwner {
+        USDTLike(usdToken).transfer(owner, amount);
+    }
+
     receive() external payable {}
 }
