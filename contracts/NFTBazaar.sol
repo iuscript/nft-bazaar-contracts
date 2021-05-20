@@ -71,6 +71,7 @@ contract NFTBazaar is
         public
         returns (uint256)
     {
+        require(player != address(0), "player address cannot be 0");
         _tokenIds.increment();
 
         uint256 newItemId = _tokenIds.current();
