@@ -63,6 +63,22 @@
 
 卖家在寄卖时选择eth支付，当商品被售出时，货款保存在合约中，以pendingWithdrawals变量保存其可提现越。使用本方法，可将积累在合约中的eth一次性取出。
 
+##### function nftOffered(uint256 _tokenID) external
+
+查看订单接口。根据tokenid返回订单信息。
+
+```json
+struct Offer {
+    bool isForSale;
+    uint256 tokenID;
+    address seller;
+    uint256 price;
+    address paymentToken;
+}
+```
+
+
+
 #### 合约ABI
 
 ```json
