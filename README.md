@@ -8,11 +8,15 @@
 
 #### 主要函数
 
-##### function tokenURI(uint256 tokenId) public view
+##### function totalSupply() external view returns(uint256)
+
+返回nft资产的总数量
+
+##### function tokenURI(uint256 tokenId) external view returns(string)
 
 输入tokenId，返回该nft资产的URI链接地址。该链接格式应为json字符串，保存了资产meta数据。
 
-##### function awardItem(address player, string memory tokenUri) public returns (uint256)
+##### function awardItem(address player, string memory tokenUri) external returns (uint256)
 
 创建nft资产。player资产owner钱包地址。tokenUri资产meta数据，一般为json格式的链接地址。
 
