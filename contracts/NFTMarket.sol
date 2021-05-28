@@ -51,9 +51,10 @@ contract Owned {
 }
 
 contract NftMarket is Owned {
-    address public nftAsset; // kovan 0x0663b99715199d78850836Ba93dd479955E5105D
+    address public nftAsset; // kovan 0x0663b99715199d78850836Ba93dd479955E5105D 0x93e97BE3755EC8D54B464F310171c5DE51b1b461
     address public usdToken; // kovan 0xB00Db1372E3B459697514213721118Faf75e3B6e main 0xdAC17F958D2ee523a2206206994597C13D831ec7 
-    uint256 public constant transferFee = 5; // default 5%
+    string public constant version = "1.1.0";
+    uint256 public transferFee = 5; // default 5%
 
     struct Offer {
         bool isForSale;
@@ -63,6 +64,7 @@ contract NftMarket is Owned {
         address paymentToken;
     }
 
+    mapping(uint256 => address) public royalty;
     mapping(uint256 => Offer) public nftOffered;
     mapping(address => uint256) public pendingWithdrawals;
 
@@ -90,6 +92,7 @@ contract NftMarket is Owned {
         uint256 tokenID =
             ERC721Like(nftAsset).awardItem(address(this), _tokenURI);
 
+        royalty[tokenID] = msg.sender;
         _sell(tokenID, _price, _paymentToken);
 
         return tokenID;
@@ -187,6 +190,11 @@ contract NftMarket is Owned {
 
     function recoveryUsdt(uint256 amount) external onlyOwner {
         USDTLike(usdToken).transfer(owner, amount);
+    }
+
+    function setTransferFee(uint256 _transferFee) external onlyOwner {
+        require(_transferFee > 0);
+        transferFee= _transferFee;
     }
 
     receive() external payable {}
