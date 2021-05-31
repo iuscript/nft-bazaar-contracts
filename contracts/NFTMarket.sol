@@ -51,10 +51,10 @@ contract Owned {
 }
 
 contract NftMarket is Owned {
-    address public nftAsset; // kovan 0x0663b99715199d78850836Ba93dd479955E5105D 0x93e97BE3755EC8D54B464F310171c5DE51b1b461
-    address public usdToken; // kovan 0xB00Db1372E3B459697514213721118Faf75e3B6e main 0xdAC17F958D2ee523a2206206994597C13D831ec7 
+    address public nftAsset;
+    address public usdToken;
     string public constant version = "1.1.0";
-    uint256 public transferFee = 5; // default 5%
+    uint256 public transferFee = 5;
 
     struct Offer {
         bool isForSale;
@@ -146,7 +146,7 @@ contract NftMarket is Owned {
     function buy(uint256 _tokenID) external payable {
         Offer memory offer = nftOffered[_tokenID];
         require(offer.isForSale, "nft not actually for sale");
-        uint256 share1 = (offer.price * transferFee) / 100; // 平台分润
+        uint256 share1 = (offer.price * transferFee) / 100;
 
         if (offer.paymentToken != address(0)) {
             USDTLike(offer.paymentToken).transferFrom(
