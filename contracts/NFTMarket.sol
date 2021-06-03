@@ -58,7 +58,7 @@ contract NftMarket is Owned {
     address public nftAsset;
     address public usdToken;
     address public previous_version;
-    string public constant version = "2.0.0";
+    string public constant version = "2.1.0";
     uint256 public transferFee = 25;
 
     struct Offer {
@@ -85,7 +85,7 @@ contract NftMarket is Owned {
     mapping(uint256 => address[]) public bidders;
     mapping(uint256 => mapping(address => bool)) public bade;
 
-    event Offered(uint256 indexed tokenID, uint256 price, address paymentToken);
+    event Offered(uint256 indexed tokenID, address indexed seller, uint256 price, address paymentToken, bool isBid, uint256 endTime);
     event Bought(
         address indexed seller,
         address indexed buyers,
@@ -182,7 +182,7 @@ contract NftMarket is Owned {
             );
         }
 
-        emit Offered(_tokenID, _price, _paymentToken);
+        emit Offered(_tokenID, msg.sender, _price, _paymentToken, _isBid, _endTime);
     }
 
     function noLongerForSale(uint256 tokenID) external {
