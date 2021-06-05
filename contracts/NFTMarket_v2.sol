@@ -63,6 +63,7 @@ contract NftMarket is Owned {
     uint256 public authorFee = 20;
     uint256 public sellerFee = 500;
     uint256 public overflowFee = 300;
+    uint256 public bidGrowth = 100;
 
     struct Offer {
         bool isForSale;
@@ -272,7 +273,8 @@ contract NftMarket is Owned {
                 "The bid cannot be lower than the starting price"
             );
             require(
-                amount + offerBalances[tokenID][msg.sender] > bid.value,
+                amount + offerBalances[tokenID][msg.sender] >
+                    (bid.value * (bidGrowth + 1000)) / 1000,
                 "This quotation is less than the current quotation"
             );
             USDTLike(offer.paymentToken).transferFrom(
@@ -322,12 +324,12 @@ contract NftMarket is Owned {
             uint256 share_Contract =
                 ((offer.price +
                     ((bid.value - offer.price) * sellerFee) /
-                    1000) * transferFee) / 1000;            
+                    1000) * transferFee) / 1000;
             uint256 share_Seller =
                 ((offer.price +
                     ((bid.value - offer.price) * sellerFee) /
                     1000) * (1000 - transferFee)) / 1000;
-            uint256 share_Author = share_Contract * authorFee / 1000;
+            uint256 share_Author = (share_Contract * authorFee) / 1000;
 
             if (offer.paymentToken != address(0)) {
                 USDTLike(offer.paymentToken).transfer(
@@ -453,6 +455,11 @@ contract NftMarket is Owned {
     function setOverflowFee(uint256 _overflowFee) external onlyOwner {
         require(_overflowFee > 0);
         overflowFee = _overflowFee;
+    }
+
+    function setBidGrowth(uint256 _bidGrowth) external onlyOwner {
+        require(_bidGrowth > 0);
+        bidGrowth = _bidGrowth;
     }
 
     receive() external payable {}
