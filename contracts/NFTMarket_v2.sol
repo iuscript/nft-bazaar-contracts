@@ -58,7 +58,7 @@ contract NftMarket is Owned {
     address public nftAsset;
     address public usdToken;
     address public previous_version;
-    string public constant version = "2.2.1";
+    string public constant version = "2.2.2";
     uint256 public transferFee = 25;
     uint256 public authorFee = 20;
     uint256 public sellerFee = 500;
@@ -352,21 +352,14 @@ contract NftMarket is Owned {
                     share_Seller
                 );
 
-                for (uint256 i = 0; i < nftBids[tokenID].length - 1; i++) {
-                    uint256 share_bidder = 0;
-                    if (i == 0) {
-                        share_bidder =
-                            ((nftBids[tokenID][i].value - offer.price) *
-                                overflowFee) /
-                            100;
-                    } else {
-                        share_bidder =
-                            ((nftBids[tokenID][i].value -
-                                nftBids[tokenID][i - 1].value) * overflowFee) /
-                            100;
-                    }
+                for (uint256 i = 1; i < nftBids[tokenID].length; i++) {
+                    uint256 share_bidder =
+                        ((nftBids[tokenID][i].value -
+                            nftBids[tokenID][i - 1].value) * overflowFee) /
+                            1000;
+
                     USDTLike(offer.paymentToken).transfer(
-                        nftBids[tokenID][i].bidder,
+                        nftBids[tokenID][i - 1].bidder,
                         share_bidder
                     );
                 }
@@ -386,19 +379,16 @@ contract NftMarket is Owned {
             } else {
                 payable(royalty[tokenID]).transfer(share_Author);
                 payable(offer.seller).transfer(share_Seller);
-                for (uint256 i = 0; i < nftBids[tokenID].length - 1; i++) {
-                    uint256 share_bidder = 0;
-                    if (i == 0) {
-                        share_bidder =
-                            ((nftBids[tokenID][i].value - offer.price) * 30) /
-                            100;
-                    } else {
-                        share_bidder =
-                            ((nftBids[tokenID][i].value -
-                                nftBids[tokenID][i - 1].value) * 30) /
-                            100;
-                    }
-                    payable(nftBids[tokenID][i].bidder).transfer(share_bidder);
+
+                for (uint256 i = 1; i < nftBids[tokenID].length; i++) {
+                    uint256 share_bidder =
+                        ((nftBids[tokenID][i].value -
+                            nftBids[tokenID][i - 1].value) * overflowFee) /
+                            1000;
+
+                    payable(nftBids[tokenID][i - 1].bidder).transfer(
+                        share_bidder
+                    );
                 }
 
                 for (uint256 i = 0; i < bidders[tokenID].length; i++) {

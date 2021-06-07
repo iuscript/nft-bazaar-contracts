@@ -46,7 +46,8 @@ function awardItem(address player, string memory tokenUri) external returns (uin
 | kovan | 1.1.0 | 0x88Feb551Ef109685dFEb5962E81a6dcC74E7b6BC     | 合约保存“铸币者”地址，用于后续版本分润版税                   |
 | kovan | 2.0.0 | ~~0x9b4EA46c32a6A7F2191786d7b9E387c448E6d8c5~~ |                                                              |
 | kovan | 2.1.0 | ~~0x7E860d745B362E70E07ff05E2363173884341B79~~ | 调整event Offered，增加seller、isBid和endTime参数            |
-| kovan | 2.2.0 | 0xA3c35B7f3f42B606A2a44bc55B0Be6184Da1E25c     | 更新竞拍标准，每次加价不低于10%<br />各种费率使用变量且可通过管理员进行设置。均为千分制。 |
+| kovan | 2.2.0 | ~~0xA3c35B7f3f42B606A2a44bc55B0Be6184Da1E25c~~ | 更新竞拍标准，每次加价不低于10%<br />各种费率使用变量且可通过管理员进行设置。均为千分制。 |
+| kovan | 2.2.2 | 0x8626b6aDF816d41745Bf59C6aB911d2f27a0d969     | 1. 给拍卖endTime增加限制，最短10分钟，最长12周<br />2. 修复溢价分润的bug |
 | main  | 1.1.0 | 0xC2d34cA884dbB9fe930bd32Eba35c2Cc327CE304     |                                                              |
 
 #### 1. V1版主要函数
