@@ -58,7 +58,7 @@ contract NftMarket is Owned {
     address public nftAsset;
     address public usdToken;
     address public previous_version;
-    string public constant version = "2.2.0";
+    string public constant version = "2.2.1";
     uint256 public transferFee = 25;
     uint256 public authorFee = 20;
     uint256 public sellerFee = 500;
@@ -137,6 +137,17 @@ contract NftMarket is Owned {
         bool _isBid,
         uint256 _endTime
     ) external returns (uint256) {
+        if (_endTime != 0) {
+            require(
+                _endTime > block.timestamp + 10 minutes,
+                "Bidding period is 10 minutes minimum"
+            );
+            require(
+                _endTime < block.timestamp + 12 weeks,
+                "The longest bidding time is within 12 weeks"
+            );
+        }
+
         uint256 tokenID =
             ERC721Like(nftAsset).awardItem(address(this), _tokenURI);
 

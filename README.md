@@ -44,10 +44,10 @@ function awardItem(address player, string memory tokenUri) external returns (uin
 | ----- | ----- | ---------------------------------------------- | ------------------------------------------------------------ |
 | kovan | 1.0.0 | ~~0xc839EB991094D611e08bc1C236f37551529aE534~~ |                                                              |
 | kovan | 1.1.0 | 0x88Feb551Ef109685dFEb5962E81a6dcC74E7b6BC     | 合约保存“铸币者”地址，用于后续版本分润版税                   |
-| main  | 1.1.0 | 0xC2d34cA884dbB9fe930bd32Eba35c2Cc327CE304     |                                                              |
 | kovan | 2.0.0 | ~~0x9b4EA46c32a6A7F2191786d7b9E387c448E6d8c5~~ |                                                              |
 | kovan | 2.1.0 | ~~0x7E860d745B362E70E07ff05E2363173884341B79~~ | 调整event Offered，增加seller、isBid和endTime参数            |
 | kovan | 2.2.0 | 0xA3c35B7f3f42B606A2a44bc55B0Be6184Da1E25c     | 更新竞拍标准，每次加价不低于10%<br />各种费率使用变量且可通过管理员进行设置。均为千分制。 |
+| main  | 1.1.0 | 0xC2d34cA884dbB9fe930bd32Eba35c2Cc327CE304     |                                                              |
 
 #### 1. V1版主要函数
 
@@ -124,7 +124,7 @@ function createAndSell(string memory _tokenURI, uint256 _price, address _payment
 | _price        | uint256 | 售价。该数值需要附带小数位。eth有18个小数位，usdt有6个小数位。 |
 | _paymentToken | address | 支付类型。eth对应0x0000000000000000000000000000000000000000。usdt对应0xB00Db1372E3B459697514213721118Faf75e3B6e |
 | _isBid        | bool    | 拍卖模式标记                                                 |
-| _endTime      | uint256 | 拍卖结束时间。一口价模式本参数可填写为0                      |
+| _endTime      | uint256 | 拍卖结束时间的时间戳，单位为秒。一口价模式本参数可填写为0，限时拍卖最小值为10分钟后以及12周以内。 |
 | 返回值        | uint256 | tokenID                                                      |
 
 ##### 3.2 二次上架销售
