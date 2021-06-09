@@ -58,7 +58,7 @@ contract NftMarket is Owned {
     address public nftAsset;
     address public usdToken;
     address public previous_version;
-    string public constant version = "2.2.3";
+    string public constant version = "2.2.4";
     uint256 public transferFee = 25;
     uint256 public authorFee = 20;
     uint256 public sellerFee = 500;
@@ -334,18 +334,15 @@ contract NftMarket is Owned {
         require(offer.endTime < block.timestamp, "The auction is not over yet");
 
         Bid memory bid = currentBid[tokenID];
-        // Bid memory bid = nftBids[tokenID][nftBids[tokenID].length -1];
 
         if (bid.value >= offer.price) {
-            uint256 share_Contract =
-                ((offer.price +
-                    ((bid.value - offer.price) * sellerFee) /
-                    1000) * transferFee) / 1000;
-            uint256 share_Seller =
-                ((offer.price +
-                    ((bid.value - offer.price) * sellerFee) /
-                    1000) * (1000 - transferFee)) / 1000;
-            uint256 share_Author = (share_Contract * authorFee) / 1000;
+            uint256 seller_share0 = ((bid.value - offer.price) * sellerFee) / 1000 + offer.price; //溢出的50% + 起拍价
+            uint256 seller_share = (seller_share0 * (1000 - transferFee)) / 1000; // 卖家实际分润（扣除了平台的2.5%）
+
+            uint256 contractFee = 1000 - sellerFee - overflowFee;
+            uint256 contract_share = ((bid.value - offer.price) * contractFee) / 1000 + (seller_share0 * transferFee) / 1000; // 平台分润 = 溢出的20% + 从卖家收取的服务费2.5%
+
+            uint256 share_Author = (contract_share * authorFee) / 1000; // 作者的分润 = 平台分润 * 2%
 
             if (offer.paymentToken != address(0)) {
                 USDTLike(offer.paymentToken).transfer(
@@ -354,7 +351,7 @@ contract NftMarket is Owned {
                 );
                 USDTLike(offer.paymentToken).transfer(
                     offer.seller,
-                    share_Seller
+                    seller_share
                 );
 
                 for (uint256 i = 1; i < nftBids[tokenID].length; i++) {
@@ -383,7 +380,7 @@ contract NftMarket is Owned {
                 }
             } else {
                 payable(royalty[tokenID]).transfer(share_Author);
-                payable(offer.seller).transfer(share_Seller);
+                payable(offer.seller).transfer(seller_share);
 
                 for (uint256 i = 1; i < nftBids[tokenID].length; i++) {
                     uint256 share_bidder =
