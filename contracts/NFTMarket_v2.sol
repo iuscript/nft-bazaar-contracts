@@ -58,7 +58,7 @@ contract NftMarket is Owned {
     address public nftAsset;
     address public usdToken;
     address public previous_version;
-    string public constant version = "2.2.2";
+    string public constant version = "2.2.3";
     uint256 public transferFee = 25;
     uint256 public authorFee = 20;
     uint256 public sellerFee = 500;
@@ -245,12 +245,17 @@ contract NftMarket is Owned {
                 offer.seller,
                 offer.price - share1
             );
+            USDTLike(offer.paymentToken).transfer(
+                royalty[_tokenID],
+                (share1 * authorFee) / 1000
+            );
         } else {
             require(
                 msg.value >= offer.price,
                 "Sorry, your credit is running low"
             );
             payable(offer.seller).transfer(offer.price - share1);
+            payable(royalty[_tokenID]).transfer((share1 * authorFee) / 1000);
         }
 
         ERC721Like(nftAsset).transferFrom(address(this), msg.sender, _tokenID);
