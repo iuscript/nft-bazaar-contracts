@@ -58,11 +58,11 @@ contract NftMarket is Owned {
     address public nftAsset;
     address public usdToken;
     address public previous_version;
-    string public constant version = "2.2.4";
+    string public constant version = "2.3.0";
     uint256 public transferFee = 25;
-    uint256 public authorFee = 20;
-    uint256 public sellerFee = 500;
-    uint256 public overflowFee = 300;
+    uint256 public authorShare = 20;
+    uint256 public sellerShare = 500;
+    uint256 public bidderShare = 300;
     uint256 public bidGrowth = 100;
 
     struct Offer {
@@ -84,10 +84,6 @@ contract NftMarket is Owned {
     mapping(uint256 => address) public royalty;
     mapping(uint256 => Offer) public nftOffered;
     mapping(uint256 => Bid) public currentBid;
-    mapping(uint256 => Bid[]) public nftBids;
-    mapping(uint256 => mapping(address => uint256)) public offerBalances;
-    mapping(uint256 => address[]) public bidders;
-    mapping(uint256 => mapping(address => bool)) public bade;
 
     event Offered(
         uint256 indexed tokenID,
@@ -165,6 +161,17 @@ contract NftMarket is Owned {
         bool _isBid,
         uint256 _endTime
     ) external {
+        if (_endTime != 0) {
+            require(
+                _endTime > block.timestamp + 10 minutes,
+                "Bidding period is 10 minutes minimum"
+            );
+            require(
+                _endTime < block.timestamp + 12 weeks,
+                "The longest bidding time is within 12 weeks"
+            );
+        }
+
         ERC721Like(nftAsset).transferFrom(msg.sender, address(this), _tokenID);
 
         if (royalty[_tokenID] == address(0)) {
@@ -247,7 +254,7 @@ contract NftMarket is Owned {
             );
             USDTLike(offer.paymentToken).transfer(
                 royalty[_tokenID],
-                (share1 * authorFee) / 1000
+                (share1 * authorShare) / 1000
             );
         } else {
             require(
@@ -255,7 +262,7 @@ contract NftMarket is Owned {
                 "Sorry, your credit is running low"
             );
             payable(offer.seller).transfer(offer.price - share1);
-            payable(royalty[_tokenID]).transfer((share1 * authorFee) / 1000);
+            payable(royalty[_tokenID]).transfer((share1 * authorShare) / 1000);
         }
 
         ERC721Like(nftAsset).transferFrom(address(this), msg.sender, _tokenID);
@@ -273,56 +280,81 @@ contract NftMarket is Owned {
         Offer memory offer = nftOffered[tokenID];
         require(offer.isForSale, "nft not actually for sale");
         require(offer.isBid, "nft must beauction mode");
+        require(
+            offer.seller != msg.sender,
+            "The seller cannot participate in the auction"
+        );
         if (offer.endTime > 0) {
             require(block.timestamp < offer.endTime, "The auction is over");
         }
 
-        if (!bade[tokenID][msg.sender]) {
-            bidders[tokenID].push(msg.sender);
-            bade[tokenID][msg.sender] = true;
-        }
-
         Bid memory bid = currentBid[tokenID];
+
         if (offer.paymentToken != address(0)) {
-            require(
-                amount + offerBalances[tokenID][msg.sender] >= offer.price,
-                "The bid cannot be lower than the starting price"
-            );
-            require(
-                amount + offerBalances[tokenID][msg.sender] >
-                    (bid.value * (bidGrowth + 1000)) / 1000,
-                "This quotation is less than the current quotation"
-            );
+            if (bid.value == 0) {
+                require(
+                    amount >= offer.price,
+                    "The bid cannot be lower than the starting price"
+                );
+            } else {
+                if (offer.price + bid.value > 1350 * 1e6) {
+                    require(
+                        amount >= (bid.value * (bidGrowth + 1000)) / 1000,
+                        "The price increase was lower than expected"
+                    );
+                } else {
+                    require(
+                        amount >= bid.value + 150 * 1e6,
+                        "The price increase was lower than expected"
+                    );
+                }
+            }
+
             USDTLike(offer.paymentToken).transferFrom(
                 msg.sender,
                 address(this),
                 amount
             );
-            currentBid[tokenID] = Bid(
-                tokenID,
-                msg.sender,
-                amount + offerBalances[tokenID][msg.sender]
-            );
-            nftBids[tokenID].push(currentBid[tokenID]);
+
+            if (bid.bidder != address(0)) {
+                USDTLike(offer.paymentToken).transfer(bid.bidder, bid.value);
+                USDTLike(offer.paymentToken).transfer(
+                    bid.bidder,
+                    ((amount - bid.value) * bidderShare) / 1000
+                );
+            }
+
+            currentBid[tokenID] = Bid(tokenID, msg.sender, amount);
             emit BidEntered(tokenID, msg.sender, amount);
-            offerBalances[tokenID][msg.sender] += amount;
         } else {
-            require(
-                msg.value + offerBalances[tokenID][msg.sender] >= offer.price,
-                "The bid cannot be lower than the starting price"
-            );
-            require(
-                msg.value + offerBalances[tokenID][msg.sender] > bid.value,
-                "This quotation is less than the current quotation"
-            );
-            currentBid[tokenID] = Bid(
-                tokenID,
-                msg.sender,
-                msg.value + offerBalances[tokenID][msg.sender]
-            );
-            nftBids[tokenID].push(currentBid[tokenID]);
+            if (bid.value == 0) {
+                require(
+                    msg.value >= offer.price,
+                    "The bid cannot be lower than the starting price"
+                );
+            } else {
+                if (offer.price + bid.value > 45 * 1e16) {
+                    require(
+                        msg.value > (bid.value * (bidGrowth + 1000)) / 1000,
+                        "The price increase was lower than expected"
+                    );
+                } else {
+                    require(
+                        msg.value >= bid.value + 45 * 1e16,
+                        "The price increase was lower than expected"
+                    );
+                }
+            }
+
+            if (bid.bidder != address(0)) {
+                payable(bid.bidder).transfer(bid.value);
+                payable(bid.bidder).transfer(
+                    ((msg.value - bid.value) * bidderShare) / 1000
+                );
+            }
+
+            currentBid[tokenID] = Bid(tokenID, msg.sender, msg.value);
             emit BidEntered(tokenID, msg.sender, msg.value);
-            offerBalances[tokenID][msg.sender] += msg.value;
         }
     }
 
@@ -336,13 +368,19 @@ contract NftMarket is Owned {
         Bid memory bid = currentBid[tokenID];
 
         if (bid.value >= offer.price) {
-            uint256 seller_share0 = ((bid.value - offer.price) * sellerFee) / 1000 + offer.price; //溢出的50% + 起拍价
-            uint256 seller_share = (seller_share0 * (1000 - transferFee)) / 1000; // 卖家实际分润（扣除了平台的2.5%）
+            uint256 seller_share0 =
+                ((bid.value - offer.price) * sellerShare) / 1000 + offer.price; //溢出的50% + 起拍价
+            uint256 seller_share =
+                (seller_share0 * (1000 - transferFee)) / 1000; // 卖家实际分润（扣除了平台的2.5%）
 
-            uint256 contractFee = 1000 - sellerFee - overflowFee;
-            uint256 contract_share = ((bid.value - offer.price) * contractFee) / 1000 + (seller_share0 * transferFee) / 1000; // 平台分润 = 溢出的20% + 从卖家收取的服务费2.5%
+            uint256 contractFee = 1000 - sellerShare - bidderShare;
+            uint256 contract_share =
+                ((bid.value - offer.price) * contractFee) /
+                    1000 +
+                    (seller_share0 * transferFee) /
+                    1000; // 平台分润 = 溢出的20% + 从卖家收取的服务费2.5%
 
-            uint256 share_Author = (contract_share * authorFee) / 1000; // 作者的分润 = 平台分润 * 2%
+            uint256 share_Author = (contract_share * authorShare) / 1000; // 作者的分润 = 平台分润 * 2%
 
             if (offer.paymentToken != address(0)) {
                 USDTLike(offer.paymentToken).transfer(
@@ -353,60 +391,10 @@ contract NftMarket is Owned {
                     offer.seller,
                     seller_share
                 );
-
-                for (uint256 i = 1; i < nftBids[tokenID].length; i++) {
-                    uint256 share_bidder =
-                        ((nftBids[tokenID][i].value -
-                            nftBids[tokenID][i - 1].value) * overflowFee) /
-                            1000;
-
-                    USDTLike(offer.paymentToken).transfer(
-                        nftBids[tokenID][i - 1].bidder,
-                        share_bidder
-                    );
-                }
-
-                for (uint256 i = 0; i < bidders[tokenID].length; i++) {
-                    if (bid.bidder != bidders[tokenID][i]) {
-                        uint256 offerBalance =
-                            offerBalances[tokenID][bidders[tokenID][i]];
-                        offerBalances[tokenID][bidders[tokenID][i]] = 0;
-                        USDTLike(offer.paymentToken).transfer(
-                            bidders[tokenID][i],
-                            offerBalance
-                        );
-                        delete bade[tokenID][bidders[tokenID][i]];
-                    }
-                }
             } else {
                 payable(royalty[tokenID]).transfer(share_Author);
                 payable(offer.seller).transfer(seller_share);
-
-                for (uint256 i = 1; i < nftBids[tokenID].length; i++) {
-                    uint256 share_bidder =
-                        ((nftBids[tokenID][i].value -
-                            nftBids[tokenID][i - 1].value) * overflowFee) /
-                            1000;
-
-                    payable(nftBids[tokenID][i - 1].bidder).transfer(
-                        share_bidder
-                    );
-                }
-
-                for (uint256 i = 0; i < bidders[tokenID].length; i++) {
-                    if (bid.bidder != bidders[tokenID][i]) {
-                        uint256 offerBalance =
-                            offerBalances[tokenID][bidders[tokenID][i]];
-                        offerBalances[tokenID][bidders[tokenID][i]] = 0;
-                        payable(bidders[tokenID][i]).transfer(offerBalance);
-                        delete bade[tokenID][bidders[tokenID][i]];
-                    }
-                }
             }
-            offerBalances[tokenID][bid.bidder] = 0;
-            delete bade[tokenID][bid.bidder];
-            delete bidders[tokenID];
-            delete nftBids[tokenID];
 
             ERC721Like(nftAsset).transferFrom(
                 address(this),
@@ -432,11 +420,11 @@ contract NftMarket is Owned {
         delete currentBid[tokenID];
     }
 
-    function recoveryEth(uint256 amount) external onlyOwner {
+    function extractEth(uint256 amount) external onlyOwner {
         payable(owner).transfer(amount);
     }
 
-    function recoveryUsdt(uint256 amount) external onlyOwner {
+    function extractUsdt(uint256 amount) external onlyOwner {
         USDTLike(usdToken).transfer(owner, amount);
     }
 
@@ -445,19 +433,19 @@ contract NftMarket is Owned {
         transferFee = _transferFee;
     }
 
-    function setSellerFee(uint256 _sellerFee) external onlyOwner {
-        require(_sellerFee > 0);
-        sellerFee = _sellerFee;
+    function setSellerShare(uint256 _sellerShare) external onlyOwner {
+        require(_sellerShare > 0);
+        sellerShare = _sellerShare;
     }
 
-    function setAuthorFee(uint256 _authorFee) external onlyOwner {
-        require(_authorFee > 0);
-        authorFee = _authorFee;
+    function setAuthorShare(uint256 _authorShare) external onlyOwner {
+        require(_authorShare > 0);
+        authorShare = _authorShare;
     }
 
-    function setOverflowFee(uint256 _overflowFee) external onlyOwner {
-        require(_overflowFee > 0);
-        overflowFee = _overflowFee;
+    function setbidderShare(uint256 _bidderShare) external onlyOwner {
+        require(_bidderShare > 0);
+        bidderShare = _bidderShare;
     }
 
     function setBidGrowth(uint256 _bidGrowth) external onlyOwner {
