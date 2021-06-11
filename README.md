@@ -116,7 +116,7 @@ struct Offer {
 
 ##### 3.1 创建nft资产，并自动上架售卖
 
-function createAndSell(string memory _tokenURI, uint256 _price, address _paymentToken, bool _isBid, uint256 _endTime) external returns (uint256)
+function createAndSell(string memory _tokenURI, uint256 _price, address _paymentToken, bool _isBid, uint256 _startTime, uint256 _endTime) external returns (uint256)
 
 参数说明：
 
@@ -126,6 +126,7 @@ function createAndSell(string memory _tokenURI, uint256 _price, address _payment
 | _price        | uint256 | 售价。该数值需要附带小数位。eth有18个小数位，usdt有6个小数位。 |
 | _paymentToken | address | 支付类型。eth对应0x0000000000000000000000000000000000000000。usdt对应0xB00Db1372E3B459697514213721118Faf75e3B6e |
 | _isBid        | bool    | 拍卖模式标记                                                 |
+| _startTime    | uint256 | 拍卖开始时间的时间戳，单位为秒。不能小于当前时间。           |
 | _endTime      | uint256 | 拍卖结束时间的时间戳，单位为秒。一口价模式本参数可填写为0，限时拍卖最小值为10分钟后以及12周以内。 |
 | 返回值        | uint256 | tokenID                                                      |
 
