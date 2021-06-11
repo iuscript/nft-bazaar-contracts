@@ -1,0 +1,11 @@
+# lock
+package-lock.json
+yarn.lock
+
+# bulid
+abis/
+bin/
+
+# Dependency directories
+node_modules/
+contracts/@openzeppelin/

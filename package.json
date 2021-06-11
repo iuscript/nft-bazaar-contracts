@@ -1,0 +1,21 @@
+{
+  "name": "nftbazaar-contracts",
+  "version": "1.0.0",
+  "author": {
+    "name": "iuscript"
+  },
+  "description": "nftbazaar-contracts",
+  "engines": {
+    "node": ">=10"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "^4.1.0",
+    "solc": "^0.8.4"
+  },
+  "scripts": {
+    "compile-nft": "solcjs --base-path ./contracts/ ./contracts/NFTBazaar.sol --abi -o abis --overwrite",
+    "compile-market": "solcjs --base-path ./contracts/ ./contracts/NFTMarket.sol --abi -o abis --overwrite",
+    "compile-market-v2": "solcjs --base-path ./contracts/ ./contracts/NFTMarket_v2.sol --abi -o abis --overwrite"
+  },
+  "license": "MIT"
+}
