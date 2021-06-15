@@ -58,7 +58,7 @@ contract NftMarket is Owned {
     address public nftAsset;
     address public usdToken;
     address public previous_version;
-    string public constant version = "2.4.0";
+    string public constant version = "2.5.0";
     uint256 public transferFee = 25;
     uint256 public authorShare = 20;
     uint256 public sellerShare = 500;
@@ -146,7 +146,10 @@ contract NftMarket is Owned {
                 "The longest bidding time is within 12 weeks"
             );
         }
-        require(_startTime >= block.timestamp, "Start time cannot be earlier than now");
+        require(
+            _startTime >= block.timestamp,
+            "Start time cannot be earlier than now"
+        );
 
         uint256 tokenID =
             ERC721Like(nftAsset).awardItem(address(this), _tokenURI);
@@ -249,7 +252,10 @@ contract NftMarket is Owned {
         Offer memory offer = nftOffered[_tokenID];
         require(offer.isForSale, "nft not actually for sale");
         require(!offer.isBid, "nft is auction mode");
-        require(block.timestamp > offer.startTime, "The auction hasn't started yet");
+        require(
+            block.timestamp > offer.startTime,
+            "The auction hasn't started yet"
+        );
         uint256 share1 = (offer.price * transferFee) / 1000;
 
         if (offer.paymentToken != address(0)) {
@@ -297,7 +303,10 @@ contract NftMarket is Owned {
         if (offer.endTime > 0) {
             require(block.timestamp < offer.endTime, "The auction is over");
         }
-        require(block.timestamp > offer.startTime, "The auction hasn't started yet");
+        require(
+            block.timestamp > offer.startTime,
+            "The auction hasn't started yet"
+        );
 
         Bid memory bid = currentBid[tokenID];
 
@@ -429,6 +438,47 @@ contract NftMarket is Owned {
         }
         delete nftOffered[tokenID];
         delete currentBid[tokenID];
+    }
+
+    function reSelling(
+        uint256 _tokenID,
+        uint256 _price,
+        address _paymentToken,
+        bool _isBid,
+        uint256 _startTime,
+        uint256 _endTime
+    ) external {
+        Offer memory offer = nftOffered[_tokenID];
+        require(
+            msg.sender == offer.seller,
+            "Only the seller can restart the sale"
+        );
+        require(offer.isBid, "Must be auction mode");
+        require(offer.endTime != 0, "Open ended auction");
+        require(block.timestamp > offer.endTime, "The auction is not over yet");
+
+        Bid memory bid = currentBid[_tokenID];
+        if (bid.value == 0) {
+            if (_endTime != 0) {
+                require(
+                    _endTime > block.timestamp + 10 minutes,
+                    "Bidding period is 10 minutes minimum"
+                );
+                require(
+                    _endTime < block.timestamp + 12 weeks,
+                    "The longest bidding time is within 12 weeks"
+                );
+            }
+
+            _sell(
+                _tokenID,
+                _price,
+                _paymentToken,
+                _isBid,
+                _startTime,
+                _endTime
+            );
+        }
     }
 
     function extractEth(uint256 amount) external onlyOwner {
