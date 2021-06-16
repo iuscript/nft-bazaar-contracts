@@ -58,7 +58,7 @@ contract NftMarket is Owned {
     address public nftAsset;
     address public usdToken;
     address public previous_version;
-    string public constant version = "2.5.1";
+    string public constant version = "2.5.2";
     uint256 public transferFee = 25;
     uint256 public authorShare = 20;
     uint256 public sellerShare = 500;
@@ -136,21 +136,6 @@ contract NftMarket is Owned {
         uint256 _startTime,
         uint256 _endTime
     ) external returns (uint256) {
-        if (_endTime != 0) {
-            require(
-                _endTime > block.timestamp + 10 minutes,
-                "Bidding period is 10 minutes minimum"
-            );
-            require(
-                _endTime < block.timestamp + 12 weeks,
-                "The longest bidding time is within 12 weeks"
-            );
-        }
-        require(
-            _startTime >= block.timestamp,
-            "Start time cannot be earlier than now"
-        );
-
         uint256 tokenID =
             ERC721Like(nftAsset).awardItem(address(this), _tokenURI);
 
@@ -169,19 +154,6 @@ contract NftMarket is Owned {
         uint256 _startTime,
         uint256 _endTime
     ) external {
-        if (_endTime != 0) {
-            require(
-                _endTime > block.timestamp + 10 minutes,
-                "Bidding period is 10 minutes minimum"
-            );
-            require(
-                _endTime < block.timestamp + 12 weeks,
-                "The longest bidding time is within 12 weeks"
-            );
-        }
-
-        ERC721Like(nftAsset).transferFrom(msg.sender, address(this), _tokenID);
-
         if (royalty[_tokenID] == address(0)) {
             address temp = MarketLike(previous_version).royalty(_tokenID);
             if (temp != address(0)) {
@@ -190,6 +162,8 @@ contract NftMarket is Owned {
                 royalty[_tokenID] = msg.sender;
             }
         }
+
+        ERC721Like(nftAsset).transferFrom(msg.sender, address(this), _tokenID);
 
         _sell(_tokenID, _price, _paymentToken, _isBid, _startTime, _endTime);
     }
@@ -202,6 +176,25 @@ contract NftMarket is Owned {
         uint256 _startTime,
         uint256 _endTime
     ) internal {
+        uint256 startTime = _startTime;
+        if (_endTime != 0) {
+            require(
+                _endTime > block.timestamp + 10 minutes,
+                "Bidding period is 10 minutes minimum"
+            );
+            require(
+                _endTime < block.timestamp + 12 weeks,
+                "The longest bidding time is within 12 weeks"
+            );
+            require(
+                _startTime < _endTime,
+                "The start time cannot be less than the end time"
+            );
+        }
+        if (_startTime < block.timestamp) {
+            startTime = block.timestamp;
+        }
+
         if (_paymentToken != address(0)) {
             nftOffered[_tokenID] = Offer(
                 true,
@@ -210,7 +203,7 @@ contract NftMarket is Owned {
                 msg.sender,
                 _price,
                 usdToken,
-                _startTime,
+                startTime,
                 _endTime
             );
         } else {
@@ -221,7 +214,7 @@ contract NftMarket is Owned {
                 msg.sender,
                 _price,
                 _paymentToken,
-                _startTime,
+                startTime,
                 _endTime
             );
         }
@@ -232,7 +225,7 @@ contract NftMarket is Owned {
             _price,
             _paymentToken,
             _isBid,
-            _startTime,
+            startTime,
             _endTime
         );
     }
@@ -355,7 +348,7 @@ contract NftMarket is Owned {
             } else {
                 if (bid.value < 45 * 1e16 + offer.price) {
                     require(
-                        msg.value >= 50 * 1e16 + bid.value,
+                        msg.value >= 5 * 1e16 + bid.value,
                         "The price increase was lower than expected"
                     );
                 } else {
@@ -458,27 +451,17 @@ contract NftMarket is Owned {
         require(block.timestamp > offer.endTime, "The auction is not over yet");
 
         Bid memory bid = currentBid[_tokenID];
-        if (bid.value == 0) {
-            if (_endTime != 0) {
-                require(
-                    _endTime > block.timestamp + 10 minutes,
-                    "Bidding period is 10 minutes minimum"
-                );
-                require(
-                    _endTime < block.timestamp + 12 weeks,
-                    "The longest bidding time is within 12 weeks"
-                );
-            }
+        require(bid.bidder != address(0), "Resale only when streaming");
+        delete currentBid[tokenID];
 
-            _sell(
-                _tokenID,
-                _price,
-                _paymentToken,
-                _isBid,
-                _startTime,
-                _endTime
-            );
-        }
+        _sell(
+            _tokenID,
+            _price,
+            _paymentToken,
+            _isBid,
+            _startTime,
+            _endTime
+        );
     }
 
     function extractEth(uint256 amount) external onlyOwner {
