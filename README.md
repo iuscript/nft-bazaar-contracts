@@ -50,7 +50,8 @@ function awardItem(address player, string memory tokenUri) external returns (uin
 | kovan | 2.2.2 | ~~0x8626b6aDF816d41745Bf59C6aB911d2f27a0d969~~ | 1. 给拍卖endTime增加限制，最短10分钟，最长12周<br />2. 修复溢价分润的bug |
 | kovan | 2.3.0 | ~~0x6509E0f871dAF8ec90210c925714A9a07d7bA418~~ | 1. 最新分润标准<br />2. 一口价模式给作者分润<br />3. 禁止卖家参与竞拍<br />4. 每次竞拍退还上一个竞拍者的资金并将溢出金额的30%分润 |
 | kovan | 2.5.0 | ~~0x3268f61fe09eB649a08B7Eaba67818d7e320d686~~ | 1. 增加拍卖开始时间<br />2. 增加reSelling方法将流拍的NFT重新上架销售 |
-| kovan | 2.5.1 | 0x2917331Da36de678B652a3b35c8190C7CC3c986A     | 1. 修复竞价公式bug                                           |
+| kovan | 2.5.1 | ~~0x2917331Da36de678B652a3b35c8190C7CC3c986A~~ | 1. 修复竞价公式bug                                           |
+| kovan | 2.5.3 | 0xa82373cC65Bf4423B6025d213880c4F4D7BCFA1b     | 1. 增加对开始时间及结束时间的约束规则<br />2. 增加对初始价格的约束规则：拍卖最低价格$150或0.05 ETH |
 | main  | 1.1.0 | 0xC2d34cA884dbB9fe930bd32Eba35c2Cc327CE304     |                                                              |
 
 #### 1. V1版主要函数

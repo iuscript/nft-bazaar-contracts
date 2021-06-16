@@ -58,7 +58,7 @@ contract NftMarket is Owned {
     address public nftAsset;
     address public usdToken;
     address public previous_version;
-    string public constant version = "2.5.2";
+    string public constant version = "2.5.3";
     uint256 public transferFee = 25;
     uint256 public authorShare = 20;
     uint256 public sellerShare = 500;
@@ -196,6 +196,12 @@ contract NftMarket is Owned {
         }
 
         if (_paymentToken != address(0)) {
+            if (_isBid) {
+                require(_price >= 150 * 1e6, "The starting price shall be higher than $150");
+            } else {
+                require(_price >= 1000, "The price shall be higher than $0.001");
+            }
+            
             nftOffered[_tokenID] = Offer(
                 true,
                 _isBid,
@@ -207,6 +213,12 @@ contract NftMarket is Owned {
                 _endTime
             );
         } else {
+            if (_isBid) {
+                require(_price >= 5 * 1e16, "The starting price shall be higher than 0.05 ETH");
+            } else {
+                require(_price >= 1000, "The price shall be higher than 0.000000000000001 ETH");
+            }
+            
             nftOffered[_tokenID] = Offer(
                 true,
                 _isBid,
@@ -340,6 +352,7 @@ contract NftMarket is Owned {
             currentBid[tokenID] = Bid(tokenID, msg.sender, amount);
             emit BidEntered(tokenID, msg.sender, amount);
         } else {
+            require(amount == msg.value, "The ETH value should be equal to the amount value");
             if (bid.value == 0) {
                 require(
                     msg.value >= offer.price,
@@ -451,8 +464,7 @@ contract NftMarket is Owned {
         require(block.timestamp > offer.endTime, "The auction is not over yet");
 
         Bid memory bid = currentBid[_tokenID];
-        require(bid.bidder != address(0), "Resale only when streaming");
-        delete currentBid[tokenID];
+        require(bid.bidder == address(0), "Resale only when streaming");
 
         _sell(
             _tokenID,
