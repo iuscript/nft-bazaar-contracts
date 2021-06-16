@@ -58,7 +58,7 @@ contract NftMarket is Owned {
     address public nftAsset;
     address public usdToken;
     address public previous_version;
-    string public constant version = "2.5.0";
+    string public constant version = "2.5.1";
     uint256 public transferFee = 25;
     uint256 public authorShare = 20;
     uint256 public sellerShare = 500;
@@ -317,14 +317,14 @@ contract NftMarket is Owned {
                     "The bid cannot be lower than the starting price"
                 );
             } else {
-                if (offer.price + bid.value > 1350 * 1e6) {
+                if (bid.value < 1350 * 1e6 + offer.price) {
                     require(
-                        amount >= (bid.value * (bidGrowth + 1000)) / 1000,
+                        amount >= 150 * 1e6 + bid.value,
                         "The price increase was lower than expected"
                     );
                 } else {
                     require(
-                        amount >= bid.value + 150 * 1e6,
+                        amount >= (bid.value * (bidGrowth + 1000)) / 1000,
                         "The price increase was lower than expected"
                     );
                 }
@@ -353,14 +353,14 @@ contract NftMarket is Owned {
                     "The bid cannot be lower than the starting price"
                 );
             } else {
-                if (offer.price + bid.value > 45 * 1e16) {
+                if (bid.value < 45 * 1e16 + offer.price) {
                     require(
-                        msg.value > (bid.value * (bidGrowth + 1000)) / 1000,
+                        msg.value >= 50 * 1e16 + bid.value,
                         "The price increase was lower than expected"
                     );
                 } else {
                     require(
-                        msg.value >= bid.value + 45 * 1e16,
+                        msg.value > (bid.value * (bidGrowth + 1000)) / 1000,
                         "The price increase was lower than expected"
                     );
                 }
