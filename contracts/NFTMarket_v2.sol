@@ -58,7 +58,7 @@ contract NftMarket is Owned {
     address public nftAsset;
     address public usdToken;
     address public previous_version;
-    string public constant version = "2.5.3";
+    string public constant version = "2.5.4";
     uint256 public transferFee = 25;
     uint256 public authorShare = 20;
     uint256 public sellerShare = 500;
@@ -195,13 +195,11 @@ contract NftMarket is Owned {
             startTime = block.timestamp;
         }
 
+        if (_isBid) {
+            require(_price > 0, "price > 0");
+        }
+
         if (_paymentToken != address(0)) {
-            if (_isBid) {
-                require(_price >= 150 * 1e6, "The starting price shall be higher than $150");
-            } else {
-                require(_price >= 1000, "The price shall be higher than $0.001");
-            }
-            
             nftOffered[_tokenID] = Offer(
                 true,
                 _isBid,
@@ -213,12 +211,6 @@ contract NftMarket is Owned {
                 _endTime
             );
         } else {
-            if (_isBid) {
-                require(_price >= 5 * 1e16, "The starting price shall be higher than 0.05 ETH");
-            } else {
-                require(_price >= 1000, "The price shall be higher than 0.000000000000001 ETH");
-            }
-            
             nftOffered[_tokenID] = Offer(
                 true,
                 _isBid,
@@ -316,7 +308,7 @@ contract NftMarket is Owned {
         Bid memory bid = currentBid[tokenID];
 
         if (offer.paymentToken != address(0)) {
-            if (bid.value == 0) {
+            if (bid.bidder == address(0)) {
                 require(
                     amount >= offer.price,
                     "The bid cannot be lower than the starting price"
@@ -353,7 +345,7 @@ contract NftMarket is Owned {
             emit BidEntered(tokenID, msg.sender, amount);
         } else {
             require(amount == msg.value, "The ETH value should be equal to the amount value");
-            if (bid.value == 0) {
+            if (bid.bidder == address(0)) {
                 require(
                     msg.value >= offer.price,
                     "The bid cannot be lower than the starting price"
@@ -393,7 +385,7 @@ contract NftMarket is Owned {
 
         Bid memory bid = currentBid[tokenID];
 
-        if (bid.value >= offer.price) {
+        if (bid.bidder != address(0)) {
             uint256 seller_share0 =
                 ((bid.value - offer.price) * sellerShare) / 1000 + offer.price; //溢出的50% + 起拍价
             uint256 seller_share =
