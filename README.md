@@ -30,6 +30,16 @@ function awardItem(address player, string memory tokenUri) external returns (uin
 
 返回值uint256，是被创建的合约编号，即tokenID
 
+##### 1.4 允许其他账户转移NFT资产
+
+approve(address to, uint256 tokenId) external
+
+授予将TokenId令牌传输到另一个帐户的权限。在传送令牌时，审批将被清除。
+
+一次只能批准一个帐户，因此批准零地址将清除先前的审批。
+
+要求：调用方必须拥有令牌或者是经过批准的操作员。令牌必须存在。
+
 #### 2. 合约ABI
 
 ```json
@@ -135,7 +145,7 @@ function createAndSell(string memory _tokenURI, uint256 _price, address _payment
 
 ##### 3.2 直接上架销售
 
-function sell( uint256 _tokenID, uint256 _price, address _paymentToken, bool _isBid, uint256 _endTime) external
+function sell( uint256 _tokenID, uint256 _price, address _paymentToken, bool _isBid, uint256 _startTime, uint256 _endTime) external
 
 将已创建或以拥有的nft资产，挂在合约上进行售卖
 
@@ -170,6 +180,8 @@ struct Offer {
 function enterBid(uint256 tokenID, uint256 amount) external payable
 
 如该资产需要eth支付，则需要注意传递相应数量的eth
+
+eth支付时，amount数量必须与msg.value相同
 
 ##### 3.6 成交
 
