@@ -58,7 +58,7 @@ contract NftMarket is Owned {
     address public nftAsset;
     address public usdToken;
     address public previous_version;
-    string public constant version = "2.5.4";
+    string public constant version = "2.5.5";
     uint256 public transferFee = 25;
     uint256 public authorShare = 20;
     uint256 public sellerShare = 500;
@@ -344,7 +344,10 @@ contract NftMarket is Owned {
             currentBid[tokenID] = Bid(tokenID, msg.sender, amount);
             emit BidEntered(tokenID, msg.sender, amount);
         } else {
-            require(amount == msg.value, "The ETH value should be equal to the amount value");
+            require(
+                amount == msg.value,
+                "The ETH value should be equal to the amount value"
+            );
             if (bid.bidder == address(0)) {
                 require(
                     msg.value >= offer.price,
@@ -447,25 +450,63 @@ contract NftMarket is Owned {
         uint256 _endTime
     ) external {
         Offer memory offer = nftOffered[_tokenID];
-        require(
-            msg.sender == offer.seller,
-            "Only the seller can restart the sale"
-        );
+        require(offer.isForSale, "nft not actually for sale");
         require(offer.isBid, "Must be auction mode");
         require(offer.endTime != 0, "Open ended auction");
         require(block.timestamp > offer.endTime, "The auction is not over yet");
 
         Bid memory bid = currentBid[_tokenID];
-        require(bid.bidder == address(0), "Resale only when streaming");
+        if (bid.bidder != address(0)) {
+            require(
+                msg.sender == bid.bidder,
+                "Only the buyer has the right to sell again"
+            );
+            uint256 seller_share0 =
+                ((bid.value - offer.price) * sellerShare) / 1000 + offer.price; //溢出的50% + 起拍价
+            uint256 seller_share =
+                (seller_share0 * (1000 - transferFee)) / 1000; // 卖家实际分润（扣除了平台的2.5%）
 
-        _sell(
-            _tokenID,
-            _price,
-            _paymentToken,
-            _isBid,
-            _startTime,
-            _endTime
-        );
+            uint256 contract_share =
+                ((bid.value - offer.price) *
+                    (1000 - sellerShare - bidderShare)) /
+                    1000 +
+                    (seller_share0 * transferFee) /
+                    1000; // 平台分润 = 溢出的20% + 从卖家收取的服务费2.5%
+
+            uint256 share_Author = (contract_share * authorShare) / 1000; // 作者的分润 = 平台分润 * 2%
+
+            if (offer.paymentToken != address(0)) {
+                USDTLike(offer.paymentToken).transfer(
+                    royalty[_tokenID],
+                    share_Author
+                );
+                USDTLike(offer.paymentToken).transfer(
+                    offer.seller,
+                    seller_share
+                );
+            } else {
+                payable(royalty[_tokenID]).transfer(share_Author);
+                payable(offer.seller).transfer(seller_share);
+            }
+
+            emit Bought(
+                offer.seller,
+                bid.bidder,
+                _tokenID,
+                bid.value,
+                offer.paymentToken
+            );
+        } else {
+            require(
+                msg.sender == offer.seller,
+                "Only the seller can restart the sale"
+            );
+            emit AuctionPass(_tokenID);
+        }
+
+        delete currentBid[_tokenID];
+
+        _sell(_tokenID, _price, _paymentToken, _isBid, _startTime, _endTime);
     }
 
     function extractEth(uint256 amount) external onlyOwner {
