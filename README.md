@@ -40,6 +40,10 @@ approve(address to, uint256 tokenId) external
 
 要求：调用方必须拥有令牌或者是经过批准的操作员。令牌必须存在。
 
+##### 1.5 查看当前授权情况
+
+getApproved(uint256 tokenId) external returns(address operator)
+
 #### 2. 合约ABI
 
 ```json
