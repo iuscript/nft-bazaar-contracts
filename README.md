@@ -66,7 +66,10 @@ getApproved(uint256 tokenId) external returns(address operator)
 | kovan | 2.5.0 | ~~0x3268f61fe09eB649a08B7Eaba67818d7e320d686~~ | 1. 增加拍卖开始时间<br />2. 增加reSelling方法将流拍的NFT重新上架销售 |
 | kovan | 2.5.1 | ~~0x2917331Da36de678B652a3b35c8190C7CC3c986A~~ | 1. 修复竞价公式bug                                           |
 | kovan | 2.5.3 | ~~0xa82373cC65Bf4423B6025d213880c4F4D7BCFA1b~~ | 1. 增加对开始时间及结束时间的约束规则<br />2. 增加对初始价格的约束规则：拍卖最低价格$150或0.05 ETH |
-| kovan | 2.5.5 | 0x984967f140C10CCE9D325FE3698Ee37D5E7922fd     | 1. 解除对固定价格下限约束，只对拍卖价格限制为大于零<br />2. 调整reSelling方法，允许买家不取回NFT直接上架销售 |
+| kovan | 2.5.5 | ~~0x984967f140C10CCE9D325FE3698Ee37D5E7922fd~~ | 1. 解除对固定价格下限约束，只对拍卖价格限制为大于零<br />2. 调整reSelling方法，允许买家不取回NFT直接上架销售 |
+| kovan | 2.6.0 | ~~0x39A6e8B8e33ce6B27c44d2D0C3C35b6a49AF5a0F~~ | 1. 新增changePrice方法，固定价格可以调整价格及支付币种       |
+| kovan | 2.6.1 | ~~0x66B35621b2fC36d35579B091507778109d228551~~ | 1. 新增ChangePrice事件，记录价格改变。                       |
+| kovan | 2.6.2 | 0xb714Ff6DAB31fBdFa3351f44eD073b4d7B5eedC6     | 1. 修复reSelling方法漏洞，增加 _lock_ 修改器，防止合约重入   |
 | main  | 1.1.0 | 0xC2d34cA884dbB9fe930bd32Eba35c2Cc327CE304     |                                                              |
 
 #### 1. V1版主要函数
@@ -199,6 +202,12 @@ function deal(uint256 tokenID) external
 function reSelling(uint256 _tokenID, uint256 _price, address _paymentToken, bool _isBid, uint256 _startTime, uint256 _endTime) external
 
 当拍卖时间结束，尚未有用户参与竞价，则商品流拍。卖家可以通过本方法将艺术品直接上架销售而不必从合约中取回nft后再调用销售方法。
+
+##### 3.8 调整价格
+
+function changePrice(uint256 tokenID, uint256 price, address paymentToken) external
+
+当固定模式销售长时间无人购买时，卖家可以直接根据市场情况调整NFT的报价及支付币种，且不比将商品下架后再重新上架。
 
 #### 4. V2版ABI
 
