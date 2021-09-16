@@ -70,6 +70,7 @@ getApproved(uint256 tokenId) external returns(address operator)
 | kovan | 2.6.0 | ~~0x39A6e8B8e33ce6B27c44d2D0C3C35b6a49AF5a0F~~ | 1. 新增changePrice方法，固定价格可以调整价格及支付币种       |
 | kovan | 2.6.1 | ~~0x66B35621b2fC36d35579B091507778109d228551~~ | 1. 新增ChangePrice事件，记录价格改变。                       |
 | kovan | 2.6.2 | 0xb714Ff6DAB31fBdFa3351f44eD073b4d7B5eedC6     | 1. 修复reSelling方法漏洞，增加 _lock_ 修改器，防止合约重入   |
+| kovan | 2.7.0 | 0xf071b4EB3e9407D6fE1A3f0255011eb42e56f1C9     | 支持zUSD购买                                                 |
 | main  | 1.1.0 | 0xC2d34cA884dbB9fe930bd32Eba35c2Cc327CE304     |                                                              |
 
 #### 1. V1版主要函数

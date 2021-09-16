@@ -23,6 +23,16 @@ interface USDTLike {
     ) external;
 }
 
+interface ERC20Like {
+    function transfer(address, uint256) external returns (bool);
+
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _value
+    ) external returns (bool);
+}
+
 interface MarketLike {
     function royalty(uint256 tokenID) external returns (address);
 }
@@ -58,7 +68,7 @@ contract NftMarket is Owned {
     address public nftAsset;
     address public usdToken;
     address public previous_version;
-    string public constant version = "2.6.2";
+    string public constant version = "2.7.0";
     uint256 public transferFee = 25;
     uint256 public authorShare = 20;
     uint256 public sellerShare = 500;
@@ -206,29 +216,16 @@ contract NftMarket is Owned {
             require(_price > 0, "price > 0");
         }
 
-        if (_paymentToken != address(0)) {
-            nftOffered[_tokenID] = Offer(
-                true,
-                _isBid,
-                _tokenID,
-                msg.sender,
-                _price,
-                usdToken,
-                startTime,
-                _endTime
-            );
-        } else {
-            nftOffered[_tokenID] = Offer(
-                true,
-                _isBid,
-                _tokenID,
-                msg.sender,
-                _price,
-                _paymentToken,
-                startTime,
-                _endTime
-            );
-        }
+        nftOffered[_tokenID] = Offer(
+            true,
+            _isBid,
+            _tokenID,
+            msg.sender,
+            _price,
+            usdToken,
+            startTime,
+            _endTime
+        );
 
         emit Offered(
             _tokenID,
@@ -279,7 +276,14 @@ contract NftMarket is Owned {
         );
         uint256 share1 = (offer.price * transferFee) / 1000;
 
-        if (offer.paymentToken != address(0)) {
+        if (offer.paymentToken == address(0)) {
+            require(
+                msg.value >= offer.price,
+                "Sorry, your credit is running low"
+            );
+            payable(offer.seller).transfer(offer.price - share1);
+            payable(royalty[_tokenID]).transfer((share1 * authorShare) / 1000);
+        } else if (offer.paymentToken == usdToken) {
             USDTLike(offer.paymentToken).transferFrom(
                 msg.sender,
                 address(this),
@@ -294,12 +298,19 @@ contract NftMarket is Owned {
                 (share1 * authorShare) / 1000
             );
         } else {
-            require(
-                msg.value >= offer.price,
-                "Sorry, your credit is running low"
+            ERC20Like(offer.paymentToken).transferFrom(
+                msg.sender,
+                address(this),
+                offer.price
             );
-            payable(offer.seller).transfer(offer.price - share1);
-            payable(royalty[_tokenID]).transfer((share1 * authorShare) / 1000);
+            ERC20Like(offer.paymentToken).transfer(
+                offer.seller,
+                offer.price - share1
+            );
+            ERC20Like(offer.paymentToken).transfer(
+                royalty[_tokenID],
+                (share1 * authorShare) / 1000
+            );
         }
 
         ERC721Like(nftAsset).transferFrom(address(this), msg.sender, _tokenID);
@@ -331,7 +342,7 @@ contract NftMarket is Owned {
 
         Bid memory bid = currentBid[tokenID];
 
-        if (offer.paymentToken != address(0)) {
+        if (offer.paymentToken == usdToken) {
             if (bid.bidder == address(0)) {
                 require(
                     amount >= offer.price,
@@ -367,7 +378,7 @@ contract NftMarket is Owned {
 
             currentBid[tokenID] = Bid(tokenID, msg.sender, amount);
             emit BidEntered(tokenID, msg.sender, amount);
-        } else {
+        } else if (offer.paymentToken == address(0)) {
             require(
                 amount == msg.value,
                 "The ETH value should be equal to the amount value"
@@ -400,6 +411,42 @@ contract NftMarket is Owned {
 
             currentBid[tokenID] = Bid(tokenID, msg.sender, msg.value);
             emit BidEntered(tokenID, msg.sender, msg.value);
+        } else {
+            if (bid.bidder == address(0)) {
+                require(
+                    amount >= offer.price,
+                    "The bid cannot be lower than the starting price"
+                );
+            } else {
+                if (bid.value < 1350 * 1e6 + offer.price) {
+                    require(
+                        amount >= 150 * 1e6 + bid.value,
+                        "The price increase was lower than expected"
+                    );
+                } else {
+                    require(
+                        amount >= (bid.value * (bidGrowth + 1000)) / 1000,
+                        "The price increase was lower than expected"
+                    );
+                }
+            }
+
+            ERC20Like(offer.paymentToken).transferFrom(
+                msg.sender,
+                address(this),
+                amount
+            );
+
+            if (bid.bidder != address(0)) {
+                ERC20Like(offer.paymentToken).transfer(bid.bidder, bid.value);
+                ERC20Like(offer.paymentToken).transfer(
+                    bid.bidder,
+                    ((amount - bid.value) * bidderShare) / 1000
+                );
+            }
+
+            currentBid[tokenID] = Bid(tokenID, msg.sender, amount);
+            emit BidEntered(tokenID, msg.sender, amount);
         }
     }
 
@@ -427,7 +474,7 @@ contract NftMarket is Owned {
 
             uint256 share_Author = (contract_share * authorShare) / 1000; // 作者的分润 = 平台分润 * 2%
 
-            if (offer.paymentToken != address(0)) {
+            if (offer.paymentToken == usdToken) {
                 USDTLike(offer.paymentToken).transfer(
                     royalty[tokenID],
                     share_Author
@@ -436,9 +483,18 @@ contract NftMarket is Owned {
                     offer.seller,
                     seller_share
                 );
-            } else {
+            } else if (offer.paymentToken == address(0)) {
                 payable(royalty[tokenID]).transfer(share_Author);
                 payable(offer.seller).transfer(seller_share);
+            } else {
+                ERC20Like(offer.paymentToken).transfer(
+                    royalty[tokenID],
+                    share_Author
+                );
+                ERC20Like(offer.paymentToken).transfer(
+                    offer.seller,
+                    seller_share
+                );
             }
 
             ERC721Like(nftAsset).transferFrom(
@@ -499,7 +555,7 @@ contract NftMarket is Owned {
 
             uint256 share_Author = (contract_share * authorShare) / 1000; // 作者的分润 = 平台分润 * 2%
 
-            if (offer.paymentToken != address(0)) {
+            if (offer.paymentToken == usdToken) {
                 USDTLike(offer.paymentToken).transfer(
                     royalty[_tokenID],
                     share_Author
@@ -508,9 +564,18 @@ contract NftMarket is Owned {
                     offer.seller,
                     seller_share
                 );
-            } else {
+            } else if (offer.paymentToken == address(0)) {
                 payable(royalty[_tokenID]).transfer(share_Author);
                 payable(offer.seller).transfer(seller_share);
+            } else {
+                ERC20Like(offer.paymentToken).transfer(
+                    royalty[_tokenID],
+                    share_Author
+                );
+                ERC20Like(offer.paymentToken).transfer(
+                    offer.seller,
+                    seller_share
+                );
             }
 
             emit Bought(
