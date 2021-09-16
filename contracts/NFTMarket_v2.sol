@@ -68,7 +68,7 @@ contract NftMarket is Owned {
     address public nftAsset;
     address public usdToken;
     address public previous_version;
-    string public constant version = "2.7.0";
+    string public constant version = "2.7.1";
     uint256 public transferFee = 25;
     uint256 public authorShare = 20;
     uint256 public sellerShare = 500;
@@ -222,7 +222,7 @@ contract NftMarket is Owned {
             _tokenID,
             msg.sender,
             _price,
-            usdToken,
+            _paymentToken,
             startTime,
             _endTime
         );
