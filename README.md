@@ -6,6 +6,7 @@
 | ----- | ----- | ---------------------------------------------- |
 | kovan | 1.0.0 | ~~0x0663b99715199d78850836Ba93dd479955E5105D~~ |
 | kovan | 1.1.0 | 0x93e97BE3755EC8D54B464F310171c5DE51b1b461     |
+| polygon-test | 1.1.0 | 0x545e5F9983EDc7374102cBA70e78c34CD2Cb85E6 |
 | main  | 1.1.0 | 0x6Ab57bA03a16B5c5C5f8De955929bf14559FF7AF     |
 
 #### 1. 主要函数
@@ -58,6 +59,7 @@ getApproved(uint256 tokenId) external returns(address operator)
 | ----- | ----- | ---------------------------------------------- | ------------------------------------------------------------ |
 | kovan | 1.0.0 | ~~0xc839EB991094D611e08bc1C236f37551529aE534~~ |                                                              |
 | kovan | 1.1.0 | 0x88Feb551Ef109685dFEb5962E81a6dcC74E7b6BC     | 1. 合约保存“铸币者”地址，用于后续版本分润版税                |
+| polygon-test | 1.1.0 | 0xeAD9F3dF4bBCd2fc26a7E69695Ca0be6b95cB763 | 1.版本一首次部署在polygon测试网络上
 | kovan | 2.0.0 | ~~0x9b4EA46c32a6A7F2191786d7b9E387c448E6d8c5~~ |                                                              |
 | kovan | 2.1.0 | ~~0x7E860d745B362E70E07ff05E2363173884341B79~~ | 1. 调整event Offered，增加seller、isBid和endTime参数         |
 | kovan | 2.2.0 | ~~0xA3c35B7f3f42B606A2a44bc55B0Be6184Da1E25c~~ | 1. 更新竞拍标准，每次加价不低于10%<br />2. 各种费率使用变量且可通过管理员进行设置。均为千分制。 |
@@ -72,6 +74,7 @@ getApproved(uint256 tokenId) external returns(address operator)
 | kovan | 2.6.2 | ~~0xb714Ff6DAB31fBdFa3351f44eD073b4d7B5eedC6~~ | 1. 修复reSelling方法漏洞，增加 _lock_ 修改器，防止合约重入   |
 | kovan | 2.7.0 | ~~0xf071b4EB3e9407D6fE1A3f0255011eb42e56f1C9~~ | 1.支持zUSD购买                                               |
 | kovan | 2.7.1 | 0x52e11c98793562c11dFFF74f6E3316a8Abeff27f     | 1.修复_sell方法bug，保存正确的_paymentToken                  |
+| polygon-test | 2.7.1 | 0x13aEB0D1D038A4BB08ed01957a2743651D32B015 | 1.支持zUSD版本首次部署在polygon测试网络 |
 | main  | 1.1.0 | 0xC2d34cA884dbB9fe930bd32Eba35c2Cc327CE304     |                                                              |
 
 #### 1. V1版主要函数
@@ -234,5 +237,6 @@ npx solcjs --base-path ./contracts/ ./contracts/NFTMarket_v2.sol --abi -o abis -
 | 网络  | 合约地址                                   |
 | ----- | ------------------------------------------ |
 | kovan | 0xB00Db1372E3B459697514213721118Faf75e3B6e |
+| polygon-test| 0x18531AD00605c4eF83621279FA6B55d8BB80caA3 |
 | main  | 0xdAC17F958D2ee523a2206206994597C13D831ec7 |
 
