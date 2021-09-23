@@ -10,12 +10,14 @@
   },
   "devDependencies": {
     "@openzeppelin/contracts": "^4.1.0",
-    "solc": "^0.8.4"
+    "solc": "0.8.4"
   },
   "scripts": {
     "compile-nft": "solcjs --base-path ./contracts/ ./contracts/NFTBazaar.sol --abi -o abis --overwrite",
+    "compile-nft-v2": "solcjs --base-path ./contracts/ ./contracts/NFTBazaar_v2.sol --abi -o abis --overwrite",
     "compile-market": "solcjs --base-path ./contracts/ ./contracts/NFTMarket.sol --abi -o abis --overwrite",
-    "compile-market-v2": "solcjs --base-path ./contracts/ ./contracts/NFTMarket_v2.sol --abi -o abis --overwrite"
+    "compile-market-v2": "solcjs --base-path ./contracts/ ./contracts/NFTMarket_v2.sol --abi -o abis --overwrite",
+    "compile-market-v3": "solcjs --base-path ./contracts/ ./contracts/NFTMarket_v3.sol --abi -o abis --overwrite"
   },
   "license": "MIT"
 }
