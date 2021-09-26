@@ -7,7 +7,8 @@
 | kovan | 1.0.0 | ~~0x0663b99715199d78850836Ba93dd479955E5105D~~ |
 | kovan | 1.1.0 | 0x93e97BE3755EC8D54B464F310171c5DE51b1b461     |
 | polygon-mumbai | 1.1.0 | 0x545e5F9983EDc7374102cBA70e78c34CD2Cb85E6 |
-| polygon-mumbai | 2.0.0 | 0x87c68F1e39cEEA6F32F7a7887E5Bbb27004EEC4f |
+| polygon-mumbai | 2.0.0 | ~~0x87c68F1e39cEEA6F32F7a7887E5Bbb27004EEC4f~~ |
+| polygon-mumbai | 2.0.1 | 0x3B0CbdAF30412eE612E19C6A15098a4F1230d62b |
 | main  | 1.1.0 | 0x6Ab57bA03a16B5c5C5f8De955929bf14559FF7AF     |
 
 #### 1. 主要函数
@@ -76,7 +77,7 @@ getApproved(uint256 tokenId) external returns(address operator)
 | kovan | 2.7.0 | ~~0xf071b4EB3e9407D6fE1A3f0255011eb42e56f1C9~~ | 1.支持zUSD购买                                               |
 | kovan | 2.7.1 | 0x52e11c98793562c11dFFF74f6E3316a8Abeff27f     | 1.修复_sell方法bug，保存正确的_paymentToken                  |
 | polygon-mumbai | 2.7.1 | 0x13aEB0D1D038A4BB08ed01957a2743651D32B015 | 1.支持zUSD版本首次部署在polygon测试网络 |
-| polygon-mumbai | 3.0.0 | 0xa964762BAA19dDA30629E3c1935368a1C3251F21 | 1.合并USDT与普通代币转账接口<br />2.支持多种NFT售卖（仅支持ERC721标准合约） |
+| polygon-mumbai | 3.0.0 | 0xdb558cB536fF74703c777eA607a62C95cE14A3bc | 1.合并USDT与普通代币转账接口<br />2.支持多种NFT售卖（仅支持ERC721标准合约） |
 | main  | 1.1.0 | 0xC2d34cA884dbB9fe930bd32Eba35c2Cc327CE304     |                                                              |
 
 #### 1. V1版主要函数

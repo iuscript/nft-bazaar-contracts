@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract NFTBazaar is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, AccessControl {
-    string public constant version = "2.0.0";
+    string public constant version = "2.0.1";
     string baseURI = "https://nftbazaar-test.oss-cn-beijing.aliyuncs.com/nft/";
     using Counters for Counters.Counter;
 
@@ -65,8 +65,7 @@ contract NFTBazaar is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Acce
         override(ERC721, ERC721URIStorage)
         returns (string memory)
     {
-        //return super.tokenURI(tokenId);
-        return string(abi.encodePacked(_baseURI(), Strings.toString(tokenId)));
+        return super.tokenURI(tokenId);
     }
 
     function supportsInterface(bytes4 interfaceId)
@@ -87,7 +86,7 @@ contract NFTBazaar is ERC721, ERC721Enumerable, ERC721URIStorage, Pausable, Acce
 
         uint256 newItemId = _tokenIdCounter.current();
         _mint(to, newItemId);
-        _setTokenURI(newItemId, string(abi.encodePacked(_baseURI(), Strings.toString(newItemId))));
+        _setTokenURI(newItemId, string(abi.encodePacked(_baseURI(), Strings.toString(newItemId), '.json')));
 
         return newItemId;
     }
