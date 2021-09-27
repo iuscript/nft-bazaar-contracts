@@ -54,7 +54,7 @@ contract Owned {
 
 contract NftMarket is Owned {
     address public nftAsset;
-    string public constant version = "3.0.0";
+    string public constant version = "3.0.1";
     uint256 public transferFee = 25;
     uint256 public authorShare = 20;
     uint256 public sellerShare = 500;
@@ -355,7 +355,7 @@ contract NftMarket is Owned {
                     "The bid cannot be lower than the starting price"
                 );
             } else {
-                uint256 decimal = ERC20Like(tokenAddress).decimals();
+                uint256 decimal = ERC20Like(offer.paymentToken).decimals();
                 if (bid.value < 1350 * 10**decimal + offer.price) {
                     require(
                         amount >= 150 * 10**decimal + bid.value,
